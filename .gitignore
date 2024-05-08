@@ -1,0 +1,17 @@
+# secret
+config.json
+
+# outputs
+regen_di_japanese/
+regen_di_jp/
+regen_di_test/
+regen_test/
+regen_di.json
+
+# Jupyter Notebooks
+0*.ipynb
+
+# other folder
+.venv/
+__pycache__/
+stanford_alpaca/
