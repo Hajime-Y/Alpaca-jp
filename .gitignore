@@ -15,3 +15,6 @@ regen_di.json
 .venv/
 __pycache__/
 stanford_alpaca/
+
+# for Mac
+.DS_Store
