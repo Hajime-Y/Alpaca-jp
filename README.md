@@ -1,6 +1,6 @@
 # Alpaca-jp
 
-[Stanford Alpaca](https://github.com/tatsu-lab/stanford_alpaca)データセットの日本語版をMixtral-8x22B, Mixtral-8x7Bを用いて作成するためのコードです。
+[Stanford Alpaca](https://github.com/tatsu-lab/stanford_alpaca)データセットの日本語版をMixtral-8x22B, Mixtral-8x7Bを用いて作成するためのコードです。  
 作成済み合成データ: [Hachi-Alpaca](https://huggingface.co/datasets/HachiML/Hachi-Alpaca)
 
 ## Usage
