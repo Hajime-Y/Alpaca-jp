@@ -2,9 +2,9 @@
 
 [Stanford Alpaca](https://github.com/tatsu-lab/stanford_alpaca)データセットの日本語版をMixtral-8x22B, Mixtral-8x7Bを用いて作成するためのコードです。  
 
-## 作成済み合成データ
+## Synthetic data
 
-[Hachi-Alpaca](https://huggingface.co/datasets/HachiML/Hachi-Alpaca)
+HuggingFace リンク: [Hachi-Alpaca](https://huggingface.co/datasets/HachiML/Hachi-Alpaca)
 
 ## Usage
  - MistralAIのAPIを用いて作成: [10_generate_instruction.ipynb](https://github.com/Hajime-Y/Alpaca-jp/blob/main/10_generate_instruction.ipynb)
