@@ -31,9 +31,9 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # RougeScorerの日本語化対応
 hf_tokenizer = AutoTokenizer.from_pretrained("tokyotech-llm/Swallow-MS-7b-v0.1")
 
-def encode_prompt(prompt_instructions):
+def encode_prompt(prompt_instructions, base_prompt_file="./prompt_en_for_jp.txt"):
     """Encode multiple prompt instructions into a single string."""
-    prompt = open("./prompt_en_for_jp.txt").read() + "\n"
+    prompt = open(base_prompt_file).read() + "\n"
 
     for idx, task_dict in enumerate(prompt_instructions):
         (instruction, input, output) = task_dict["instruction"], task_dict["input"], task_dict["output"]
@@ -152,6 +152,8 @@ def generate_instruction_following_data(
     temperature=1.0,
     top_p=1.0,
     num_cpus=16,
+    base_prompt_file="./prompt_en_for_jp.txt",
+    max_rouge_scores=0.7,
 ):
     seed_tasks = [json.loads(l) for l in open(seed_tasks_path, "r")]
     seed_instruction_data = [
@@ -189,7 +191,7 @@ def generate_instruction_following_data(
         for _ in range(request_batch_size):
             # only sampling from the seed tasks
             prompt_instructions = random.sample(seed_instruction_data, num_prompt_instructions)
-            prompt = encode_prompt(prompt_instructions)
+            prompt = encode_prompt(prompt_instructions, base_prompt_file=base_prompt_file)
             batch_inputs.append(prompt)
         decoding_args = utils.OpenAIDecodingArguments(
             temperature=temperature,
@@ -228,8 +230,8 @@ def generate_instruction_following_data(
             most_similar_instructions = {
                 all_instructions[i]: rouge_scores[i] for i in np.argsort(rouge_scores)[-10:][::-1]
             }
-            if max(rouge_scores) > 0.7:
-                print(f"\nFilter: 最大rouge_scoresが0.7を超えています。")
+            if max(rouge_scores) > max_rouge_scores:
+                print(f"\nFilter: 最大rouge_scoresが{max_rouge_scores}を超えています。")
                 continue
             else:
                 keep += 1
