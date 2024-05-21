@@ -141,6 +141,24 @@ def find_word_in_string(w, s):
     return re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(s)
 
 
+def create_text_for_similarity_check(instruction, similarity_check=["instruction"]):
+    """
+    指定されたinstruction辞書から、similarity_checkリストに基づいてテキストを生成します。
+
+    Args:
+        instruction (dict): 各種テキストタイプをキーとする辞書。
+        similarity_check (list): 生成するテキストのタイプを指定するリスト。デフォルトは["instruction"]。
+
+    Returns:
+        str: 生成されたテキスト。異なるテキストタイプは改行で区切られます。
+    """
+    text = ""
+    for text_type in similarity_check:
+        joint_text = "" if text == "" else "\n"
+        text += joint_text + instruction[text_type]
+    return text
+
+
 def generate_instruction_following_data(
     # output_dir="./",
     output_path="./regen_di.json",
@@ -154,7 +172,13 @@ def generate_instruction_following_data(
     num_cpus=16,
     base_prompt_file="./prompt_en_for_jp.txt",
     max_rouge_scores=0.7,
+    similarity_check=["instruction"],
 ):
+    # コマンドラインで使用した場合、stringで渡されることになるのでリストに修正
+    # 複数指定する場合は"instruction input"のように空白で区切る
+    if isinstance(similarity_check, str):
+        similarity_check = similarity_check.split(" ")
+
     seed_tasks = [json.loads(l) for l in open(seed_tasks_path, "r")]
     seed_instruction_data = [
         {"instruction": t["instruction"], "input": t["instances"][0]["input"], "output": t["instances"][0]["output"]}
@@ -179,8 +203,12 @@ def generate_instruction_following_data(
         progress_bar.update(len(machine_instruction_data))
 
     # first we tokenize all the seed instructions and generated machine instructions
-    all_instructions = [d["instruction"] for d in seed_instruction_data] + [
-        d["instruction"] for d in machine_instruction_data
+    # all_instructions = [d["instruction"] for d in seed_instruction_data] + [
+    #     d["instruction"] for d in machine_instruction_data
+    # ]
+    # all_instruction_tokens = [scorer._tokenizer.tokenize(inst) for inst in all_instructions]
+    all_instructions = [create_text_for_similarity_check(d, similarity_check) for d in seed_instruction_data] + [
+        create_text_for_similarity_check(d, similarity_check) for d in machine_instruction_data
     ]
     all_instruction_tokens = [scorer._tokenizer.tokenize(inst) for inst in all_instructions]
 
@@ -220,7 +248,7 @@ def generate_instruction_following_data(
         keep = 0
         for instruction_data_entry in instruction_data:
             # computing similarity with the pre-tokenzied instructions
-            new_instruction_tokens = scorer._tokenizer.tokenize(instruction_data_entry["instruction"])
+            new_instruction_tokens = scorer._tokenizer.tokenize(create_text_for_similarity_check(instruction_data_entry, similarity_check))
             with Pool(num_cpus) as p:
                 rouge_scores = p.map(
                     partial(rouge_scorer._score_lcs, new_instruction_tokens),
@@ -238,7 +266,7 @@ def generate_instruction_following_data(
             instruction_data_entry["most_similar_instructions"] = most_similar_instructions
             instruction_data_entry["avg_similarity_score"] = float(np.mean(rouge_scores))
             machine_instruction_data.append(instruction_data_entry)
-            all_instructions.append(instruction_data_entry["instruction"])
+            all_instructions.append(create_text_for_similarity_check(instruction_data_entry, similarity_check))
             all_instruction_tokens.append(new_instruction_tokens)
             progress_bar.update(1)
         process_duration = time.time() - process_start

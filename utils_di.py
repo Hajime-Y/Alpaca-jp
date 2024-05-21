@@ -45,7 +45,7 @@ def fetch_completion(client, prompt, shared_kwargs):
     try:
         chat_response = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "Hello"},
+                {"role": "system", "content": "You are a useful and honest AI assistant."},
                 {"role": "user", "content": prompt}
             ],
             **shared_kwargs
